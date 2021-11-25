@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>tsudanuma</title>
+  <script src='https://code.jquery.com/jquery-3.5.1.slim.min.js'></script>
+  <script src='https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+
+    .map-overlay {
+      font: bold 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+      position: absolute;
+      width: 25%;
+      top: 0;
+      left: 0;
+      padding: 10px;
+    }
+
+    .map-overlay .map-overlay-inner {
+      background-color: #fff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .map-overlay label {
+      display: block;
+      margin: 0 0 10px;
+    }
+
+    .map-overlay input {
+      background-color: transparent;
+      display: inline-block;
+      width: 100%;
+      position: relative;
+      margin: 0;
+      cursor: ew-resize;
+    }
+  </style>
+</head>
+<body>
+  <div id='map'></div>
+  <div class="map-overlay top">
+    <div class="map-overlay-inner">
+      <label>Max time (minutes): <span id="slider-value">180</span></label>
+      <svg xmlns="http://www.w3.org/2000/svg" id="play_btn" width="16" height="16" fill="currentColor" class="bi bi-play-btn" viewBox="0 0 16 16">
+        <path d="M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814l-3.5-2.5z" />
+        <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm15 0a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z" />
+      </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" id="pause_btn" width="16" height="16" fill="currentColor" class="bi bi-pause-btn" viewBox="0 0 16 16" style="display: none;">
+        <path d="M6.25 5C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5zm3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5z" />
+        <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm15 0a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z" />
+      </svg>
+      <input id="slider" type="range" min="5" max="180" step="1" value="180" />
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    mapboxgl.accessToken = 'pk.eyJ1Ijoia291dGEwNDIyIiwiYSI6ImNrdGJxcHRseDF5czYyb3FraWU5Znp3cTkifQ.cknW15ccrf7NCR4bQtlUkA';
+    var tsudanuma = [140.02032888852, 35.691276738069];
+    var src_tsudanuma;
+    var map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/outdoors-v11', // stylesheet location
+      center: tsudanuma, // starting position [lng, lat]
+      zoom: 7 // starting zoom
+    });
+    var marker = new mapboxgl.Marker()
+      .setLngLat(tsudanuma)
+      .addTo(map);
+    // Add zoom and rotation controls to the map.
+    map.addControl(new mapboxgl.NavigationControl());
+    var slider = document.getElementById('slider');
+    var sliderValue = document.getElementById('slider-value');
+    map.on('load', function () {
+      map.addSource('src_tsudanuma', {
+        type: 'geojson',
+        data: {{ points | tojson }}
+      });
+    // for debug
+    src_tsudanuma = map.querySourceFeatures("src_tsudanuma");
+
+    map.addLayer({
+      'id': 'places',
+      'type': 'circle',
+      'source': 'src_tsudanuma',
+      'paint': {
+        //'circle-blur': 0.6,
+        'circle-color': [
+          'step',
+          ['get', 'time'],
+          '#4daf4a',
+          30,
+          '#377eb8',
+          60,
+          '#e41a1c'
+        ]
+      }
+    });
+
+    // Create a popup, but don't add it to the map yet.
+    var popup = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false
+    });
+
+    map.on('mouseenter', 'places', function (e) {
+      // Change the cursor style as a UI indicator.
+      map.getCanvas().style.cursor = 'pointer';
+
+      var coordinates = e.features[0].geometry.coordinates.slice();
+      //var description = e.features[0].properties.name;
+      var description = "<strong>"
+        + e.features[0].properties.name
+        + "</strong><ul>"
+        + "<li>Time: " + e.features[0].properties.time + "</li>"
+        + "<li>Transit count: " + e.features[0].properties.transit_count + "</li>"
+        + "</ul>";
+
+      // Ensure that if the map is zoomed out such that multiple
+      // copies of the feature are visible, the popup appears
+      // over the copy being pointed to.
+      while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+      }
+
+      // Populate the popup and set its coordinates
+      // based on the feature found.
+      popup.setLngLat(coordinates).setHTML(description).addTo(map);
+    });
+
+    map.on('mouseleave', 'places', function () {
+      map.getCanvas().style.cursor = '';
+      popup.remove();
+    });
+
+    $("#slider").on("input", function (e) {
+      map.setFilter('places', ['<=', ['get', 'time'], parseInt(e.target.value, 10)]);
+      // Value indicator
+      sliderValue.textContent = e.target.value;
+    });
+
+    var intervalId;
+    $("#play_btn").click(function () {
+      $("#play_btn").hide();
+      $("#pause_btn").show();
+      intervalId = setInterval(function () {
+        var value = parseInt(slider.value, 10);
+        if (value < 180) {
+          value += 1;
+        }
+        else {
+          value = 0;
+        }
+        $("#slider").val(value).trigger("input");
+      }, 100);
+    });
+    $("#pause_btn").click(function () {
+      clearInterval(intervalId);
+      $("#play_btn").show();
+      $("#pause_btn").hide();
+    });
+
+    });
+
+  </script>
+</body>
+</html>
