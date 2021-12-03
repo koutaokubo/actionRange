@@ -4,19 +4,13 @@ import pandas as pd
 import geojson
 from mapboxgl.utils import df_to_geojson
 from flask import Flask
-from flask import render_template
+from flask import render_template,request, redirect
 
 mapbox_token = 'pk.eyJ1Ijoia291dGEwNDIyIiwiYSI6ImNrdGJxcHRseDF5czYyb3FraWU5Znp3cTkifQ.cknW15ccrf7NCR4bQtlUkA'
 rapidapi_key = 'c38f754eeamshe5c7f581381f479p1a4cb4jsn7e2d577d20e8'
+geocoding_key = 'AIzaSyBoH5SHPN8KzA8AZ-NmmIeayyxqO3wRjkU'
 
 app = Flask(__name__)
-
-headers = {
-        'x-rapidapi-host': "navitime-reachable.p.rapidapi.com",
-        'x-rapidapi-key': rapidapi_key
-        }
-
-tsudanuma_loc = "35.691276738069,140.02032888852"
 
 def flatten(d, parent_key='', sep='_'):
         """
@@ -33,9 +27,19 @@ def flatten(d, parent_key='', sep='_'):
         return dict(items)
 
 @app.route("/")
+def index():
+    message = "駅名を入力してください"
+    # messageとtitleをindex.htmlに変数展開
+    return render_template('index.html',message=message)
+
+
+@app.route("/transit", methods=['POST','GET'])
 def show_transit():
-    points = transit()
-    return render_template('transit.html', points=points)
+    place = request.form['place']
+    return_values = transit(place)
+    points = return_values[0]
+    latlng = return_values[1]
+    return render_template('transit.html', points=points,latlng=latlng)
 
 @app.route("/walk")
 def show_walk():
@@ -47,7 +51,7 @@ def show_car():
     points = car()
     return render_template('car.html', points = points)
 
-def transit():
+def transit(place):
     from collections import MutableMapping
     def flatten(d, parent_key='', sep='_'):
         """
@@ -63,6 +67,17 @@ def transit():
                 items.append((new_key, v))
         return dict(items)
 
+    geo_url = "https://maps.googleapis.com/maps/api/geocode/json"
+    loc = place
+    params = {}
+    geocoding_key = 'AIzaSyBoH5SHPN8KzA8AZ-NmmIeayyxqO3wRjkU'
+    params['key'] = geocoding_key
+    params['address'] = loc
+    params["language"] = "ja"
+    output = requests.get(geo_url, params).json()
+    lat = (output['results'][0]['geometry']['location']['lat'])
+    lng = (output['results'][0]['geometry']['location']['lng'])
+    tsudanuma_loc = str(lat) + ',' + str(lng)
     url = "https://navitime-reachable.p.rapidapi.com/reachable_transit"
     querystring = {
         "start":tsudanuma_loc,
@@ -75,6 +90,10 @@ def transit():
         "datum":"wgs84",
         "coord_unit":"degree",
     }
+    headers = {
+        'x-rapidapi-host': "navitime-reachable.p.rapidapi.com",
+        'x-rapidapi-key': rapidapi_key
+        }
 
     response = requests.request("GET", url, headers=headers, params=querystring)
     tsudanuma = response.json()
@@ -93,9 +112,8 @@ def transit():
     # else:
     #     with open("navitime_reachable_transit.geojson", 'w') as outfile:
     #      geojson.dump(points, outfile)
-    print(type(points))
 
-    return points
+    return points,tsudanuma_loc
 
 def walk():
     from collections import MutableMapping
@@ -114,6 +132,11 @@ def walk():
         return dict(items)
 
     url = "https://navitime-reachable.p.rapidapi.com/reachable_walk"
+    tsudanuma_loc = "35.691276738069,140.02032888852"
+    headers = {
+        'x-rapidapi-host': "navitime-reachable.p.rapidapi.com",
+        'x-rapidapi-key': rapidapi_key
+        }
     terms = [30,60,180]
     tsudanuma = {'key1':'','key2':'','key3':''}
     i = 0
@@ -154,6 +177,11 @@ def car():
         return dict(items)
 
     url = "https://navitime-reachable.p.rapidapi.com/reachable_car"
+    tsudanuma_loc = "35.691276738069,140.02032888852"
+    headers = {
+        'x-rapidapi-host': "navitime-reachable.p.rapidapi.com",
+        'x-rapidapi-key': rapidapi_key
+        }
     terms = [30,60,180]
     tsudanuma = {'key1':'','key2':'','key3':''}
     i = 0
@@ -176,3 +204,7 @@ def car():
                         precision=6)
 
     return points
+
+if __name__ == "__main__":
+    app.debug = True  # デバッグモード有効化
+    app.run(host="127.0.0.1", port=8080)

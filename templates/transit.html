@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>tsudanuma</title>
+  <title>actionrange</title>
   <script src='https://code.jquery.com/jquery-3.5.1.slim.min.js'></script>
   <script src='https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.js'></script>
   <link href='https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.css' rel='stylesheet' />
@@ -71,13 +71,17 @@
 
   <script type="text/javascript">
     mapboxgl.accessToken = 'pk.eyJ1Ijoia291dGEwNDIyIiwiYSI6ImNrdGJxcHRseDF5czYyb3FraWU5Znp3cTkifQ.cknW15ccrf7NCR4bQtlUkA';
-    var tsudanuma = [140.02032888852, 35.691276738069];
+    var before_split = {{ latlng | tojson}};
+    var split_location = before_split.split(',');
+    var tsudanuma = split_location.map(Number).reverse();
+    console.log(tsudanuma);
+    // var tsudanuma = [140.02032888852, 35.691276738069];
     var src_tsudanuma;
     var map = new mapboxgl.Map({
       container: 'map',
-      style: 'mapbox://styles/mapbox/outdoors-v11', // stylesheet location
-      center: tsudanuma, // starting position [lng, lat]
-      zoom: 7 // starting zoom
+      style: 'mapbox://styles/mapbox/outdoors-v11',
+      center: tsudanuma,
+      zoom: 7
     });
     var marker = new mapboxgl.Marker()
       .setLngLat(tsudanuma)
@@ -90,7 +94,7 @@
       map.addSource('src_tsudanuma', {
         type: 'geojson',
         data: {{ points | tojson }}
-      });
+    });
     // for debug
     src_tsudanuma = map.querySourceFeatures("src_tsudanuma");
 
@@ -123,7 +127,6 @@
       map.getCanvas().style.cursor = 'pointer';
 
       var coordinates = e.features[0].geometry.coordinates.slice();
-      //var description = e.features[0].properties.name;
       var description = "<strong>"
         + e.features[0].properties.name
         + "</strong><ul>"
@@ -175,7 +178,7 @@
       $("#pause_btn").hide();
     });
 
-    });
+  });
 
   </script>
 </body>

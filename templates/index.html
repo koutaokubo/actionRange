@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="form" class="bg-dark text-white">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12" class="bg-dark text-white">
+        <p class="bg-dark text-white">
+                    {{ message }}
+                </p>
+        <form action="/transit" method="post" class="form-inline">
+          <label for="place" class="bg-dark text-white">駅名</label>
+          <input type="text" class="form-control" id="place" name="place" placeholder="駅名">
+          <button type="submit" class="btn btn-success">送信する</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
