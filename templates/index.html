@@ -8,10 +8,26 @@
         <p class="bg-dark text-white">
                     {{ message }}
                 </p>
-        <form action="/transit" method="post" class="form-inline">
+        <form action="?" method="post" class="form-inline">
+          <!-- <ul class="transportation">
+            <li>
+              <label></label><input type="radio" name="transport" value="transit" checked>トータルナビ</label>
+            </li>
+            <li>
+              <label></label><input type="radio" name="transport" value="car">車</label>
+            </li>
+            <li>
+              <label></label><input type="radio" name="transport" value="walk">徒歩</label>
+            </li>
+          </ul> -->
           <label for="place" class="bg-dark text-white">駅名</label>
-          <input type="text" class="form-control" id="place" name="place" placeholder="駅名">
-          <button type="submit" class="btn btn-success">送信する</button>
+          <input type="text" class="form-control" id="place" name="place" placeholder="駅名" autocomplete="off">
+          <div class="transportation">
+            <button type="submit" name="_method" value="post" formaction="/transit">電車 ＞</button>
+            <button type="submit" name="_method" value="post" formaction="/walk">徒歩 ＞</button>
+            <button type="submit" name="_method" value="post" formaction="/car">車 ＞</button>
+          </div>
+          <!-- <button type="submit" class="btn btn-success">送信する</button> -->
         </form>
       </div>
     </div>

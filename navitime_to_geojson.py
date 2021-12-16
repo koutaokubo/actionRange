@@ -41,12 +41,12 @@ def show_transit():
     latlng = return_values[1]
     return render_template('transit.html', points=points,latlng=latlng)
 
-@app.route("/walk")
+@app.route("/walk", methods=['POST','GET'])
 def show_walk():
     points = walk()
     return render_template('walk.html', points = points)
 
-@app.route("/car")
+@app.route("/car", methods=['POST','GET'])
 def show_car():
     points = car()
     return render_template('car.html', points = points)
