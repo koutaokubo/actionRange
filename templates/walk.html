@@ -71,7 +71,9 @@
 
   <script>
     mapboxgl.accessToken = 'pk.eyJ1Ijoia291dGEwNDIyIiwiYSI6ImNrdGJxcHRseDF5czYyb3FraWU5Znp3cTkifQ.cknW15ccrf7NCR4bQtlUkA';
-    var tsudanuma = [140.02032888852, 35.691276738069];
+    var before_split = {{ latlng | tojson}};
+    var split_location = before_split.split(',');
+    var tsudanuma = split_location.map(Number).reverse();
     var src_tsudanuma;
     var map = new mapboxgl.Map({
       container: 'map',

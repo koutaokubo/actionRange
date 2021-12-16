@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>actionrange</title>
   <script src='https://code.jquery.com/jquery-3.5.1.slim.min.js'></script>
-  <script src='https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.js'></script>
-  <link href='https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.css' rel='stylesheet' />
+  <script src='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css' rel='stylesheet' />
   <style>
     body {
       margin: 0;
@@ -116,22 +116,21 @@
       }
     });
 
-    // Create a popup, but don't add it to the map yet.
+    // popup作成
     var popup = new mapboxgl.Popup({
       closeButton: false,
       closeOnClick: false
     });
 
     map.on('mouseenter', 'places', function (e) {
-      // Change the cursor style as a UI indicator.
       map.getCanvas().style.cursor = 'pointer';
 
       var coordinates = e.features[0].geometry.coordinates.slice();
       var description = "<strong>"
         + e.features[0].properties.name
         + "</strong><ul>"
-        + "<li>Time: " + e.features[0].properties.time + "</li>"
-        + "<li>Transit count: " + e.features[0].properties.transit_count + "</li>"
+        + "<li>時間: " + e.features[0].properties.time + "</li>"
+        + "<li>乗り換え回数: " + e.features[0].properties.transit_count + "</li>"
         + "</ul>";
 
       // Ensure that if the map is zoomed out such that multiple
@@ -153,7 +152,6 @@
 
     $("#slider").on("input", function (e) {
       map.setFilter('places', ['<=', ['get', 'time'], parseInt(e.target.value, 10)]);
-      // Value indicator
       sliderValue.textContent = e.target.value;
     });
 

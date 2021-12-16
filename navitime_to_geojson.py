@@ -28,7 +28,7 @@ def flatten(d, parent_key='', sep='_'):
 
 @app.route("/")
 def index():
-    message = "駅名を入力してください"
+    message = "駅名または地点名を入力してボタンを押してください"
     # messageとtitleをindex.htmlに変数展開
     return render_template('index.html',message=message)
 
@@ -43,13 +43,19 @@ def show_transit():
 
 @app.route("/walk", methods=['POST','GET'])
 def show_walk():
-    points = walk()
-    return render_template('walk.html', points = points)
+    place = request.form['place']
+    return_values = walk(place)
+    points = return_values[0]
+    latlng = return_values[1]
+    return render_template('walk.html', points=points,latlng=latlng)
 
 @app.route("/car", methods=['POST','GET'])
 def show_car():
-    points = car()
-    return render_template('car.html', points = points)
+    place = request.form['place']
+    return_values = car(place)
+    points = return_values[0]
+    latlng = return_values[1]
+    return render_template('walk.html', points=points,latlng=latlng)
 
 def transit(place):
     from collections import MutableMapping
@@ -115,7 +121,7 @@ def transit(place):
 
     return points,tsudanuma_loc
 
-def walk():
+def walk(place):
     from collections import MutableMapping
     def flatten(d, parent_key='', sep='_'):
         """
@@ -131,8 +137,18 @@ def walk():
                 items.append((new_key, v))
         return dict(items)
 
+    geo_url = "https://maps.googleapis.com/maps/api/geocode/json"
+    loc = place
+    params = {}
+    geocoding_key = 'AIzaSyBoH5SHPN8KzA8AZ-NmmIeayyxqO3wRjkU'
+    params['key'] = geocoding_key
+    params['address'] = loc
+    params["language"] = "ja"
+    output = requests.get(geo_url, params).json()
+    lat = (output['results'][0]['geometry']['location']['lat'])
+    lng = (output['results'][0]['geometry']['location']['lng'])
+    tsudanuma_loc = str(lat) + ',' + str(lng)
     url = "https://navitime-reachable.p.rapidapi.com/reachable_walk"
-    tsudanuma_loc = "35.691276738069,140.02032888852"
     headers = {
         'x-rapidapi-host': "navitime-reachable.p.rapidapi.com",
         'x-rapidapi-key': rapidapi_key
@@ -158,9 +174,9 @@ def walk():
                         lon='coord_lon',
                         precision=6)
 
-    return points
+    return points,tsudanuma_loc
 
-def car():
+def car(place):
     from collections import MutableMapping
     def flatten(d, parent_key='', sep='_'):
         """
@@ -176,8 +192,18 @@ def car():
                 items.append((new_key, v))
         return dict(items)
 
+    geo_url = "https://maps.googleapis.com/maps/api/geocode/json"
+    loc = place
+    params = {}
+    geocoding_key = 'AIzaSyBoH5SHPN8KzA8AZ-NmmIeayyxqO3wRjkU'
+    params['key'] = geocoding_key
+    params['address'] = loc
+    params["language"] = "ja"
+    output = requests.get(geo_url, params).json()
+    lat = (output['results'][0]['geometry']['location']['lat'])
+    lng = (output['results'][0]['geometry']['location']['lng'])
+    tsudanuma_loc = str(lat) + ',' + str(lng)
     url = "https://navitime-reachable.p.rapidapi.com/reachable_car"
-    tsudanuma_loc = "35.691276738069,140.02032888852"
     headers = {
         'x-rapidapi-host': "navitime-reachable.p.rapidapi.com",
         'x-rapidapi-key': rapidapi_key
@@ -203,8 +229,4 @@ def car():
                         lon='coord_lon',
                         precision=6)
 
-    return points
-
-if __name__ == "__main__":
-    app.debug = True  # デバッグモード有効化
-    app.run(host="127.0.0.1", port=8080)
+    return points,tsudanuma_loc
