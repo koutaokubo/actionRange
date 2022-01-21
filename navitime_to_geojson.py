@@ -230,3 +230,9 @@ def car(place):
                         precision=6)
 
     return points,tsudanuma_loc
+
+
+# Flask起動コマンド
+# $env:FLASK_APP = "navitime_to_geojson"
+# $env:FLASK_ENV = "development"
+# flask run
