@@ -29,7 +29,7 @@ def flatten(d, parent_key='', sep='_'):
 @app.route("/")
 def index():
     message = "駅名または地点名を入力してボタンを押してください"
-    # messageとtitleをindex.htmlに変数展開
+    # messageとをindex.htmlに変数展開
     return render_template('index.html',message=message)
 
 
